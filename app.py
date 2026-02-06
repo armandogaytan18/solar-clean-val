@@ -6,7 +6,19 @@ import os
 # Configuración de la página
 st.set_page_config(page_title="Solar Panel Clean McMinnville", page_icon="☀️", layout="centered")
 
-# Estilos personalizados para diseño y botón verde
+# --- TRADUCTOR DE GOOGLE ---
+# Inyectamos el widget de Google Translate en la parte superior
+st.markdown("""
+    <div id="google_translate_element" style="text-align:right; padding:10px;"></div>
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({pageLanguage: 'en', layout: google.translate.TranslateElement.InlineLayout.SIMPLE}, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+""", unsafe_allow_html=True)
+
+# --- ESTILOS PERSONALIZADOS ---
 st.markdown("""
     <style>
     .stButton>button {
@@ -18,9 +30,8 @@ st.markdown("""
         border-radius: 12px !important;
         border: none !important;
         font-size: 1.3rem !important;
-        box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
     }
-    h1 { color: #1e3a8a; text-align: center; }
+    h1, h3 { color: #1e3a8a; }
     .vision-section {
         background-color: #f8f9fa;
         padding: 20px;
@@ -31,25 +42,25 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- ENCABEZADO Y GANCHO COMERCIAL ---
+# --- CONTENIDO EN INGLÉS (PREFERIDO PARA AD) ---
 st.title("☀️ Solar Panel Clean McMinnville 🏠")
-st.subheader("¡No dejes que la lluvia de Oregon ensucie tus ahorros!")
+st.subheader("Don't let the Oregon rain wash away your savings!")
 
 st.markdown("""
 At **Solar Panel Clean McMinnville**, we offer premium solar panel cleaning services that will help you maximize your return on investment. 
-Our team of experts use a specially engineered process that safely and effectively removes ash, dirt, grime, and other debris from your panels.
+Our team of experts uses a specially engineered process that safely and effectively removes ash, dirt, grime, and other debris from your panels.
 
-¿Sabías que la acumulación de polen y minerales puede reducir la eficiencia de tus paneles hasta en un **30%**? 
-La lluvia no es suficiente para limpiarlos.
+Did you know that pollen and mineral accumulation can reduce your panels' efficiency by up to **30%**? 
+Rain is not enough to keep them clean.
 """)
 
-# --- BENEFICIOS (COLUMNAS) ---
-st.info("**Ofrecemos:**\n"
-        "* ✅ Limpieza técnica con agua desionizada (Spot-free).\n"
-        "* ✅ Inspección visual de micro-fisuras.\n"
-        "* ✅ Reporte de eficiencia post-limpieza.")
+# --- BENEFITS ---
+st.info("**What we offer:**\n"
+        "* ✅ Technical cleaning with deionized water (Spot-free).\n"
+        "* ✅ Visual inspection for micro-cracks.\n"
+        "* ✅ Post-cleaning efficiency report.")
 
-# --- SECCIÓN DE VISIÓN ---
+# --- VISION SECTION ---
 st.markdown('<div class="vision-section">', unsafe_allow_html=True)
 st.markdown("""
 **Our Vision:**
@@ -64,64 +75,29 @@ st.markdown('</div>', unsafe_allow_html=True)
 
 st.divider()
 
-# --- INTERFAZ DE AGENDAMIENTO ---
-st.markdown("### 📅 Agenda tu inspección técnica hoy")
-st.write("Completa los datos para reservar tu espacio en nuestro calendario.")
+# --- SCHEDULING INTERFACE ---
+st.markdown("### 📅 Schedule Your Technical Inspection Today")
+st.write("Fill out the details below to reserve your spot in our calendar.")
 
 with st.container():
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown("##### 1. Elige Fecha y Hora")
-        fecha_cita = st.date_input("Día de la visita", min_value=datetime.now().date())
+        st.markdown("##### 1. Choose Date and Time")
+        fecha_cita = st.date_input("Visit Date", min_value=datetime.now().date())
         horas = ["08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM"]
-        hora_cita = st.selectbox("Hora disponible", horas)
+        hora_cita = st.selectbox("Available Time", horas)
 
     with col2:
-        st.markdown("##### 2. Información de Contacto")
-        nombre = st.text_input("Nombre completo")
-        telefono = st.text_input("Teléfono de contacto")
-        email = st.text_input("Email")
+        st.markdown("##### 2. Contact Information")
+        nombre = st.text_input("Full Name")
+        telefono = st.text_input("Phone Number")
+        email = st.text_input("Email Address")
 
-    direccion = st.text_input("Dirección de la propiedad (McMinnville / Yamhill County)")
-    notas = st.text_area("Notas adicionales o tipo de instalación")
+    direccion = st.text_input("Property Address (McMinnville / Yamhill County)")
+    notas = st.text_area("Additional notes or installation type")
 
-    # --- BOTÓN DE AGENDAR (VERDE) ---
-    if st.button("✅ AGENDAR MI CITA AHORA"):
+    # --- GREEN SCHEDULE BUTTON ---
+    if st.button("✅ SCHEDULE MY APPOINTMENT NOW"):
         if nombre and telefono and direccion:
-            # Crear el registro
             nuevo_registro = {
-                "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M"),
-                "Fecha_Cita": str(fecha_cita),
-                "Hora": hora_cita,
-                "Cliente": nombre,
-                "Tel": telefono,
-                "Email": email,
-                "Direccion": direccion,
-                "Notas": notas
-            }
-            
-            # Guardar en base de datos local
-            archivo = "agenda_solar_completa.csv"
-            existe = os.path.exists(archivo)
-            pd.DataFrame([nuevo_registro]).to_csv(archivo, mode='a', header=not existe, index=False)
-            
-            st.success(f"¡Excelente {nombre}! Tu cita ha sido agendada para el {fecha_cita} a las {hora_cita}.")
-            st.balloons()
-            st.warning("Te enviaremos un mensaje de confirmación a tu teléfono en breve.")
-        else:
-            st.error("⚠️ Por favor completa los campos obligatorios (Nombre, Teléfono y Dirección) para agendar.")
-
-# --- SECCIÓN ADMINISTRADOR ---
-st.divider()
-with st.expander("🔑 Acceso Administrador"):
-    if os.path.exists("agenda_solar_completa.csv"):
-        datos = pd.read_csv("agenda_solar_completa.csv")
-        st.write("Citas registradas:")
-        st.dataframe(datos)
-        st.download_button("Descargar Base de Datos", datos.to_csv(index=False), "leads_solar.csv")
-    else:
-        st.write("Aún no hay registros de clientes.")
-
-# Footer
-st.caption("© 2026 Solar Panel Clean McMinnville | Maximize your Energy Production")
