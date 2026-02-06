@@ -1,82 +1,89 @@
 import streamlit as st
-import streamlit.components.v1 as components # Necesario para Calendly
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 
-# Configuración profesional
-st.set_page_config(page_title="Solar Clean Pro | Citas", page_icon="📅", layout="wide")
+# Configuración de la página
+st.set_page_config(page_title="Solar Clean Pro | Agenda", page_icon="📅", layout="centered")
 
-# Estilo personalizado
+# Estilos personalizados (CSS) para el botón verde y diseño
 st.markdown("""
     <style>
-    .main { background-color: #f0f2f6; }
-    .stButton>button { width: 100%; background-color: #007bff; color: white; border-radius: 8px; }
-    h1 { color: #1e3a8a; }
+    .stButton>button {
+        width: 100%;
+        background-color: #28a745 !important;
+        color: white !important;
+        font-weight: bold !important;
+        padding: 0.75rem !important;
+        border-radius: 10px !important;
+        border: none !important;
+        font-size: 1.2rem !important;
+    }
+    .stButton>button:hover {
+        background-color: #218838 !important;
+        border: none !important;
+    }
+    h1 { color: #1e3a8a; text-align: center; }
+    .status-box { border: 1px solid #ddd; padding: 20px; border-radius: 10px; background-color: #ffffff; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- CABECERA ---
-st.title("☀️ Agenda tu Inspección Solar en Minutos")
-st.write("Selecciona el día y la hora que mejor te convenga para que visitemos tu propiedad en **McMinnville** o alrededores.")
+# --- TÍTULO Y EXPLICACIÓN ---
+st.title("☀️ Sistema de Agendamiento Solar")
+st.write("Selecciona el momento ideal para tu inspección técnica en McMinnville.")
 
 st.divider()
 
-# --- SECCIÓN DE CALENDLY ---
-col_cal, col_info = st.columns([2, 1])
-
-with col_cal:
-    st.markdown("### 📅 Calendario de Disponibilidad")
+# --- INTERFAZ DE AGENDAMIENTO ---
+with st.container():
+    col1, col2 = st.columns(2)
     
-    # --- INSTRUCCIÓN PARA EL USUARIO ---
-    # Reemplaza 'TU_USUARIO' por tu nombre de usuario real de Calendly
-    # Si aún no tienes uno, regístrate en Calendly.com (es gratis)
-    calendly_url = "https://calendly.com/TU_USUARIO/30min" 
-    
-    # Incrustar Calendly usando HTML/Iframe
-    components.html(
-        f"""
-        <div class="calendly-inline-widget" data-url="{calendly_url}" style="min-width:320px;height:630px;"></div>
-        <script type="text/javascript" src="https://assets.calendly.com/assets/external/widget.js" async></script>
-        """,
-        height=650,
-    )
+    with col1:
+        st.markdown("### 1. Fecha y Hora")
+        # Selección de Fecha (Día, Mes, Año)
+        # No permitimos fechas pasadas (min_value=today)
+        fecha_cita = st.date_input("Selecciona el día", min_value=datetime.now().date())
+        
+        # Selección de Hora
+        horas_disponibles = [
+            "08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM", 
+            "12:00 PM", "01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM"
+        ]
+        hora_cita = st.selectbox("Selecciona la hora", horas_disponibles)
 
-with col_info:
-    st.markdown("### 💡 ¿Qué pasará después?")
-    st.info("""
-    1. **Confirmación:** Recibirás un correo con la confirmación de la cita.
-    2. **Visita:** Llegaremos puntuales para evaluar tus paneles.
-    3. **Cotización:** Te entregaremos un presupuesto exacto y un plan de mejora de eficiencia.
-    """)
-    
-    st.warning("⚠️ **¿No encuentras horario?** Déjanos tus datos abajo y nosotros te llamamos.")
+    with col2:
+        st.markdown("### 2. Tus Datos")
+        nombre = st.text_input("Nombre completo")
+        telefono = st.text_input("Teléfono (para confirmar)")
+        email = st.text_input("Correo electrónico")
 
-st.divider()
+    # Selección de servicio extra
+    st.markdown("---")
+    direccion = st.text_input("Dirección exacta en Yamhill County")
+    notas = st.text_area("Notas adicionales (ej: número de paneles, acceso al techo)")
 
-# --- FORMULARIO DE RESPALDO (LEADS) ---
-st.markdown("### 📧 O si prefieres, nosotros te contactamos")
-with st.form("backup_form"):
-    c1, c2 = st.columns(2)
-    with c1:
-        nombre = st.text_input("Nombre")
-        tel = st.text_input("Teléfono")
-    with c2:
-        email = st.text_input("Email")
-        zip_c = st.text_input("Zip Code", value="97128")
-    
-    comentarios = st.text_area("Cuéntanos sobre tu instalación")
-    submit = st.form_submit_button("Solicitar que me llamen")
-    
-    if submit:
-        if nombre and (tel or email):
-            # Guardado local
-            nuevo_lead = {"Fecha": datetime.now(), "Nombre": nombre, "Tel": tel, "Email": email}
-            df = pd.DataFrame([nuevo_lead])
-            df.to_csv("leads_emergencia.csv", mode='a', header=not os.path.exists("leads_emergencia.csv"), index=False)
-            st.success("¡Perfecto! Te llamaremos pronto.")
-        else:
-            st.error("Por favor llena los campos de contacto.")
-
-# Footer
-st.caption("© 2026 Solar Clean Pro | Agendamiento Automatizado")
+    # --- BOTÓN DE AGENDAR (VERDE) ---
+    if st.button("✅ AGENDAR CITA AHORA"):
+        if nombre and telefono and direccion:
+            # Creamos el registro
+            nueva_cita = {
+                "ID_Orden": datetime.now().strftime("%y%m%d%H%M%S"),
+                "Fecha_Registro": datetime.now().strftime("%Y-%m-%d %H:%M"),
+                "Fecha_Cita": fecha_cita.strftime("%d/%m/%Y"),
+                "Hora_Cita": hora_cita,
+                "Cliente": nombre,
+                "Telefono": telefono,
+                "Email": email,
+                "Direccion": direccion,
+                "Notas": notas,
+                "Estado": "Pendiente de Confirmación"
+            }
+            
+            # Guardar en la base de datos (CSV)
+            df = pd.DataFrame([nueva_cita])
+            archivo = "agenda_solar.csv"
+            existe = os.path.exists(archivo)
+            df.to_csv(archivo, mode='a', header=not existe, index=False)
+            
+            # Mensaje de éxito
+            st.success(f"¡Cita agendada con éxito para el {fecha_cita.strftime('%d de
